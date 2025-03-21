@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>クリックで写真を開く地図</title>
+    <style>
+      #imageModal {
+        display: none;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(0, 0, 0, 0.8);
+        padding: 20px;
+        border-radius: 8px;
+      }
+      #imageModal img {
+        max-width: 90vw;
+        max-height: 90vh;
+      }
+      #closeBtn {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: white;
+        padding: 5px;
+        cursor: pointer;
+        border-radius: 5px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>クリックで写真を開く日本地図</h1>
+    <div id="mapContainer">
+      <object id="japanMap" type="image/svg+xml" data="japan.svg"></object>
+    </div>
+
+    <div id="imageModal">
+      <span id="closeBtn">閉じる</span>
+      <img id="modalImage" src="" alt="都道府県の画像" />
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const svgObject = document.getElementById("japanMap");
+        svgObject.addEventListener("load", function () {
+          const svgDoc = svgObject.contentDocument;
+          const regions = svgDoc.querySelectorAll("path");
+
+          regions.forEach((region) => {
+            const regionId = region.id;
+            region.style.cursor = "pointer";
+            region.style.stroke = "black";
+
+            imageExists(regionId, function (exists) {
+              if (exists) {
+                region.style.fill = "#FFFFCC"; // 写真がある場合（薄い黄色）
+                region.addEventListener("mouseover", function () {
+                  region.style.fill = "green";
+                });
+                region.addEventListener("mouseout", function () {
+                  region.style.fill = "#FFFFCC";
+                });
+                region.addEventListener("click", function () {
+                  showImage(regionId);
+                });
+              } else {
+                region.style.fill = "gray"; // 写真がない場合
+                region.style.pointerEvents = "none"; // クリック無効化
+              }
+            });
+          });
+        });
+      });
+
+      function showImage(regionId) {
+        const imagePath = `images/${regionId}.jpg`;
+        document.getElementById("modalImage").src = imagePath;
+        document.getElementById("imageModal").style.display = "block";
+      }
+
+      document
+        .getElementById("closeBtn")
+        .addEventListener("click", function () {
+          document.getElementById("imageModal").style.display = "none";
+        });
+
+      function imageExists(url, callback) {
+        const img = new Image();
+        img.src = `images/${url}.jpg`;
+        img.onload = function () {
+          callback(true);
+        };
+        img.onerror = function () {
+          callback(false);
+        };
+      }
+    </script>
+  </body>
+</html>
